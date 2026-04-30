@@ -1,0 +1,21 @@
+# Binary
+bin/
+*.exe
+
+# Environment — NEVER commit secrets
+.env
+.env.local
+
+# Go
+vendor/
+*.test
+
+# Swagger generated
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
