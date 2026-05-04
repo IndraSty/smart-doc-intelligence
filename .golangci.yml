@@ -6,13 +6,9 @@ run:
 formatters:
   enable:
     - gofmt
-    - goimports
   settings:
     gofmt:
       simplify: true
-    goimports:
-      local-prefixes: 
-        - github.com/IndraSty/smart-doc-intelligence
 linters:
   enable:
     - errcheck
