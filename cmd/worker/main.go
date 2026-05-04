@@ -22,7 +22,7 @@ import (
 
 func main() {
 	log := logger.New("development")
-	log.Info().Msg("Starting Smart Document Intelligence Worker...")
+	log.Info().Msg("Starting Smart Document Intelligence Worker....")
 
 	if err := run(log); err != nil {
 		log.Fatal("Application error", err)
