@@ -24,6 +24,11 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
+      - name: Generate swagger docs        
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go -o ./docs
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
@@ -43,6 +48,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      - name: Generate swagger docs        
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go -o ./docs
 
       - name: Download dependencies
         run: go mod download
@@ -73,6 +83,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      - name: Generate swagger docs        
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go -o ./docs
 
       - name: Download dependencies
         run: go mod download
