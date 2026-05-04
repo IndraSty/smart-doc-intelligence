@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -70,9 +71,17 @@ func main() {
 	log := logger.New("development")
 	log.Info().Msg("Starting Smart Document Intelligence API...")
 
+	if err := run(log); err != nil {
+		log.Fatal("Application error", err)
+	}
+
+}
+
+func run(log *logger.Logger) error {
+	// ── Config ───────────────────────────────────────────────────────
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("Failed to load configuration", err)
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
 	log = logger.New(cfg.App.Env)
@@ -83,31 +92,31 @@ func main() {
 	// ── Migrations ───────────────────────────────────────────────────
 	m, err := migrate.New("file://migrations", cfg.Database.URL)
 	if err != nil {
-		log.Fatal("Failed to initialize migrations", err)
+		return fmt.Errorf("failed to initialize migrations: %w", err)
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("Failed to run migrations", err)
+		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 	log.Info().Msg("Database migrations applied")
 
 	// ── Database ─────────────────────────────────────────────────────
 	pool, err := database.NewPostgresPool(ctx, &cfg.Database, log)
 	if err != nil {
-		log.Fatal("Failed to connect to PostgreSQL", err)
+		return fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
 	defer pool.Close()
 
 	// ── Redis ────────────────────────────────────────────────────────
 	redisClient, err := redisrepo.NewRedisClient(cfg.Redis.URL, log)
 	if err != nil {
-		log.Fatal("Failed to connect to Redis", err)
+		return fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 	defer func() { _ = redisClient.Close() }()
 
 	// ── RabbitMQ ─────────────────────────────────────────────────────
 	queueClient, err := queue.NewClient(&cfg.RabbitMQ, log)
 	if err != nil {
-		log.Fatal("Failed to connect to RabbitMQ", err)
+		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
 	defer queueClient.Close()
 
@@ -117,12 +126,13 @@ func main() {
 	// ── AI ───────────────────────────────────────────────────────────
 	aiClient, err := gemini.NewClient(ctx, &cfg.Gemini, log)
 	if err != nil {
-		log.Fatal("Failed to initialize Gemini client", err)
+		return fmt.Errorf("failed to initialize Gemini client: %w", err)
 	}
+	_ = aiClient
 
 	embedder, err := embedding.NewGenerator(ctx, &cfg.Gemini, log)
 	if err != nil {
-		log.Fatal("Failed to initialize embedding generator", err)
+		return fmt.Errorf("failed to initialize embedding generator: %w", err)
 	}
 	defer func() { _ = embedder.Close() }()
 
@@ -137,9 +147,6 @@ func main() {
 	userUC := usecase.NewUserUsecase(userRepo, cfg, log)
 	documentUC := usecase.NewDocumentUsecase(docRepo, jobRepo, processingUC, storageClient, cfg, log)
 	searchUC := usecase.NewSearchUsecase(extractionRepo, docRepo, embedder, log)
-
-	// Suppress unused variable warning for aiClient until worker stage
-	_ = aiClient
 
 	// ── Middleware ───────────────────────────────────────────────────
 	authMW := middleware.NewAuthMiddleware(userRepo, cfg, log)
@@ -162,23 +169,22 @@ func main() {
 		Config:          cfg,
 		Log:             log,
 	})
-
-	// Swagger UI — available at /swagger/index.html
 	router.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// ── Graceful shutdown ────────────────────────────────────────────
+	// ── Server ───────────────────────────────────────────────────────
+	port := cfg.App.Port
+	if port == "" {
+		port = "8080"
+	}
+
 	go func() {
-		port := cfg.App.Port
-		if port == "" {
-			port = "8080"
-		}
 		log.Info().Str("port", port).Msg("API server listening")
 		if err := router.Start(":" + port); err != nil {
 			log.Info().Msg("Server stopped")
 		}
 	}()
 
-	// Wait for interrupt signal
+	// ── Graceful Shutdown ────────────────────────────────────────────
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -189,8 +195,9 @@ func main() {
 	defer cancel()
 
 	if err := router.Shutdown(shutdownCtx); err != nil {
-		log.Error().Err(err).Msg("Server forced to shutdown")
+		return fmt.Errorf("server forced to shutdown: %w", err)
 	}
 
 	log.Info().Msg("Server exited cleanly")
+	return nil
 }
