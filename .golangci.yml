@@ -11,8 +11,8 @@ formatters:
     gofmt:
       simplify: true
     goimports:
-      local-prefixes: github.com/IndraSty/smart-doc-intelligence
-
+      local-prefixes: 
+        - github.com/IndraSty/smart-doc-intelligence
 linters:
   enable:
     - errcheck
