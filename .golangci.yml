@@ -1,0 +1,49 @@
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.26"
+
+formatters:
+  enable:
+    - gofmt 
+
+linters:
+  enable:
+    - errcheck        
+    - gosimple        
+    - govet           
+    - ineffassign     
+    - staticcheck     
+    - unused          
+    - goimports       
+    - misspell        
+    - noctx           
+    - bodyclose       
+    - exhaustive      
+    - gocritic        
+
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes: github.com/IndraSty/smart-doc-intelligence
+    misspell:
+      locale: US
+    exhaustive:
+      default-signifies-exhaustive: true
+
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - godot
+
+      - path: docs/
+        linters:
+          - all
+
+      - path: internal/mocks/
+        linters:
+          - unused
