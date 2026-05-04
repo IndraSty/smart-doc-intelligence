@@ -118,8 +118,10 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
-      - name: Generate Swagger docs
-        run: swag init -g cmd/api/main.go --dir ./ -o ./docs
+      - name: Generate swagger docs        
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go --dir ./ -o ./docs
 
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -132,7 +134,7 @@ jobs:
 
       - name: Run gosec security scan
         run: gosec -exclude-dir=docs ./...
-        continue-on-error: true # report but don't block PR for now
+        continue-on-error: true 
 
   # ── Job 5: Swagger validation ──────────────────────────────────────
   swagger:
