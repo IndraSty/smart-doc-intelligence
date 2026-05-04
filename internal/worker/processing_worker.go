@@ -318,7 +318,7 @@ func (w *Worker) downloadFile(ctx context.Context, storagePath string) ([]byte, 
 	if err != nil {
 		return nil, fmt.Errorf("downloadFile http do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("downloadFile: unexpected status %d", resp.StatusCode)
@@ -456,7 +456,7 @@ func (w *Worker) fireWebhook(doc *domain.Document, result *domain.AIResult) {
 		metrics.WebhookDeliveriesTotal.WithLabelValues("failed").Inc()
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	metrics.WebhookDeliveriesTotal.WithLabelValues("success").Inc()
 

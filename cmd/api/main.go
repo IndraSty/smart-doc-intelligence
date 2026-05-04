@@ -95,13 +95,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to PostgreSQL", err)
 	}
-	defer pool.Close()
 
 	// ── Redis ────────────────────────────────────────────────────────
 	redisClient, err := redisrepo.NewRedisClient(cfg.Redis.URL, log)
 	if err != nil {
 		log.Fatal("Failed to connect to Redis", err)
 	}
+
+	defer pool.Close()
 	defer func() { _ = redisClient.Close() }()
 
 	// ── RabbitMQ ─────────────────────────────────────────────────────

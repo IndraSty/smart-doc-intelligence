@@ -33,13 +33,14 @@ func main() {
 	log = log.WithService("worker")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// ── Database ─────────────────────────────────────────────────────
 	pool, err := database.NewPostgresPool(ctx, &cfg.Database, log)
 	if err != nil {
 		log.Fatal("Failed to connect to PostgreSQL", err)
 	}
+
+	defer cancel()
 	defer pool.Close()
 
 	// ── Redis ────────────────────────────────────────────────────────
@@ -106,7 +107,7 @@ func main() {
 		cancel() // cancel context to stop worker pool
 	}()
 
-	// Start blocks until ctx is cancelled
+	// Start blocks until ctx is canceled
 	if err := w.Start(ctx); err != nil {
 		log.Fatal("Worker pool failed", err)
 	}
