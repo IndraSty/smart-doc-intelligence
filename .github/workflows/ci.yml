@@ -27,7 +27,7 @@ jobs:
       - name: Generate swagger docs        
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g cmd/api/main.go -o ./docs
+          swag init -g cmd/api/main.go --dir ./ -o ./docs
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
@@ -52,7 +52,7 @@ jobs:
       - name: Generate swagger docs        
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g cmd/api/main.go -o ./docs
+          swag init -g cmd/api/main.go --dir ./ -o ./docs
 
       - name: Download dependencies
         run: go mod download
@@ -87,7 +87,7 @@ jobs:
       - name: Generate swagger docs        
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g cmd/api/main.go -o ./docs
+          swag init -g cmd/api/main.go --dir ./ -o ./docs
 
       - name: Download dependencies
         run: go mod download
@@ -150,7 +150,7 @@ jobs:
         run: go install github.com/swaggo/swag/cmd/swag@latest
 
       - name: Generate Swagger docs
-        run: swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal
+        run: swag init -g cmd/api/main.go --dir ./ -o ./docs
 
       - name: Check for uncommitted swagger changes
         run: |
