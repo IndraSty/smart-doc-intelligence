@@ -87,7 +87,7 @@ func (h *DocumentHandler) Upload(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to open uploaded file")
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	fileData, err := io.ReadAll(file)
 	if err != nil {

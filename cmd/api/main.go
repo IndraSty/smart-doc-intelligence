@@ -102,7 +102,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to Redis", err)
 	}
-	defer redisClient.Close()
+	defer func() { _ = redisClient.Close() }()
 
 	// ── RabbitMQ ─────────────────────────────────────────────────────
 	queueClient, err := queue.NewClient(&cfg.RabbitMQ, log)
@@ -124,7 +124,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to initialize embedding generator", err)
 	}
-	defer embedder.Close()
+	defer func() { _ = embedder.Close() }()
 
 	// ── Repositories ─────────────────────────────────────────────────
 	userRepo := postgres.NewUserRepository(pool, log)

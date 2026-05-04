@@ -67,7 +67,7 @@ func (c *Client) Upload(ctx context.Context, storagePath string, fileData []byte
 	if err != nil {
 		return nil, fmt.Errorf("storage.Upload http do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 
@@ -118,7 +118,7 @@ func (c *Client) GeneratePresignedURL(ctx context.Context, storagePath string, e
 	if err != nil {
 		return "", fmt.Errorf("storage.GeneratePresignedURL http do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 
@@ -171,7 +171,7 @@ func (c *Client) Delete(ctx context.Context, storagePath string) error {
 	if err != nil {
 		return fmt.Errorf("storage.Delete http do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// 200 or 404 are both acceptable — 404 means already deleted
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
@@ -202,7 +202,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("storage.HealthCheck http do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("storage.HealthCheck: bucket not accessible, status %d",

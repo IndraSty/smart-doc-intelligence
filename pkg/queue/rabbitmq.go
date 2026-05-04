@@ -32,7 +32,7 @@ func NewClient(cfg *config.RabbitMQConfig, log *logger.Logger) (*Client, error) 
 
 	ch, err := conn.Channel()
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("queue.NewClient open channel: %w", err)
 	}
 
@@ -46,16 +46,16 @@ func NewClient(cfg *config.RabbitMQConfig, log *logger.Logger) (*Client, error) 
 		nil,   // args
 	)
 	if err != nil {
-		ch.Close()
-		conn.Close()
+		_ = ch.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("queue.NewClient declare queue: %w", err)
 	}
 
 	// Prefetch limits how many unacknowledged messages a worker holds at once
 	// This prevents one slow worker from starving others
 	if err := ch.Qos(cfg.PrefetchCount, 0, false); err != nil {
-		ch.Close()
-		conn.Close()
+		_ = ch.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("queue.NewClient set QoS: %w", err)
 	}
 

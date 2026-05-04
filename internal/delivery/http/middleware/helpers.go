@@ -23,13 +23,3 @@ func generateRequestID() string {
 	}
 	return hex.EncodeToString(b)
 }
-
-// hexEncode encodes bytes to a lowercase hex string.
-func hexEncode(b []byte) string {
-	return hex.EncodeToString(b)
-}
-
-// now returns the current Unix timestamp as a byte value for fallback use.
-func now() byte {
-	return byte(time.Now().UnixNano())
-}

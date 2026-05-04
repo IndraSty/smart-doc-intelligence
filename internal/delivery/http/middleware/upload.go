@@ -65,7 +65,7 @@ func ValidateUpload(cfg *config.UploadConfig, log *logger.Logger) echo.Middlewar
 				}
 				return next(c) // let handler handle other errors
 			}
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 
 			// Validate file size from the header
 			if header.Size > maxBytes {
