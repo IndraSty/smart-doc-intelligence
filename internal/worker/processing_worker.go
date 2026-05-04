@@ -84,7 +84,7 @@ func NewWorker(
 }
 
 // Start launches the worker pool and begins consuming jobs from RabbitMQ.
-// It blocks until the context is cancelled (graceful shutdown).
+// It blocks until the context is canceled (graceful shutdown).
 // Each goroutine in the pool processes one message at a time.
 func (w *Worker) Start(ctx context.Context) error {
 	w.log.Info().
@@ -108,7 +108,7 @@ func (w *Worker) Start(ctx context.Context) error {
 
 	w.log.Info().Msg("All workers started — waiting for jobs")
 
-	// Block until context is cancelled
+	// Block until context is canceled
 	<-ctx.Done()
 
 	w.log.Info().Msg("Worker pool shutting down — draining in-flight jobs")
