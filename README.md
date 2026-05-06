@@ -41,67 +41,7 @@
 
 ### System Overview
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                            CLIENT (HTTP)                                 │
-└────────────────────────────────┬─────────────────────────────────────────┘
-                                 │ REST API
-                                 ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                         API SERVER (Echo)                                │
-│                                                                          │
-│  ┌───────────┐  ┌────────────┐  ┌───────────┐  ┌─────────────────────┐   │
-│  │   Auth    │  │  Document  │  │  Search   │  │  Health / Metrics   │   │
-│  │  Handler  │  │  Handler   │  │  Handler  │  │      Handler        │   │
-│  └─────┬─────┘  └─────┬──────┘  └─────┬─────┘  └──────────┬──────────┘   │
-│        │              │               │                   │              │
-│  ┌─────▼──────────────▼───────────────▼───────────────────▼──────────┐   │
-│  │                        Usecase Layer                              │   │
-│  │         UserUsecase · DocumentUsecase · SearchUsecase             │   │
-│  │                      ProcessingUsecase                            │   │
-│  └─────┬───────────────┬───────────────┬───────────────────────────┬─┘   │
-│        │               │               │                           │     │
-│  ┌─────▼────┐  ┌───────▼──────┐  ┌─────▼──────┐  ┌─────────────────▼──┐  │
-│  │  User    │  │   Document   │  │ Extraction │  │    Job Repository  │  │
-│  │  Repo    │  │    Repo      │  │   Repo     │  │  (Redis + Postgres)│  │
-│  └─────┬────┘  └───────┬──────┘  └────┬───────┘  └─────────────────┬──┘  │
-└────────┼───────────────┼──────────────┼────────────────────────────┼─────┘
-         │               │              │                            │
-         ▼               ▼              ▼                            ▼
-   ┌──────────┐   ┌───────────┐   ┌──────────┐               ┌──────────────┐
-   │Supabase  │   │Supabase   │   │Supabase  │               │   Upstash    │
-   │PostgreSQL│   │PostgreSQL │   │PostgreSQL│               │    Redis     │
-   │ (users)  │   │(documents)│   │+ pgvector│               │(job status)  │
-   └──────────┘   └───────────┘   └──────────┘               └──────────────┘
-                       │
-                       │ publish job
-                       ▼
-              ┌─────────────────┐
-              │   CloudAMQP     │
-              │   RabbitMQ      │
-              └────────┬────────┘
-                       │ consume job
-                       ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                      WORKER PROCESS (Goroutine Pool)                     │
-│                                                                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │ Worker-0 │  │ Worker-1 │  │ Worker-2 │  │ Worker-3 │  │ Worker-4 │    │
-│  └─────┬────┘  └─────┬────┘  └─────┬────┘  └─────┬────┘  └─────┬────┘    │
-│        └─────────────┴─────────────┴─────────────┴─────────────┘         │
-│                                    │                                     │
-│              ┌─────────────────────▼────────────────────────┐            │
-│              │            processJob() pipeline             │            │
-│              │  1. fetch document metadata (Postgres)       │            │
-│              │  2. download file (Supabase Storage)         │            │
-│              │  3. classify + extract + summarize (Gemini)  │            │
-│              │  4. generate embedding vector (Gemini)       │            │
-│              │  5. save extraction + vector (Postgres)      │            │
-│              │  6. update document status (Postgres)        │            │
-│              │  7. fire webhook callback (HTTPS POST)       │            │
-│              └──────────────────────────────────────────────┘            │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+![System overflow image](https://github.com/IndraSty/smart-doc-intelligence/blob/main/system-overflow.png)
 
 ### Upload Hot Path (Request Flow)
 
